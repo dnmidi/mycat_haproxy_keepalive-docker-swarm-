@@ -1,0 +1,13 @@
+service mycat_status
+{
+        type            = UNLISTED
+        flags           = REUSE
+        bind            = 0.0.0.0
+        socket_type     = stream
+        port            = 48700
+        wait            = no
+        user            = nobody
+        server          =/usr/local/bin/mycat_status
+        log_on_failure  += USERID
+        disable         = no
+}

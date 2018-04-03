@@ -1,0 +1,192 @@
+#docker network create -d overlay --attachable mysql
+version: '3.1'
+services:
+  #主从1
+  mysql_master1:
+    image: docker.goe.dev.com/goe_base/mysql-master:v5.7
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_35
+    environment:
+        - MYSQL_ROOT_PASSWORD=master_root
+        - MYSQL_REPLICATION_USER=sync
+        - MYSQL_PASSWORD=mysql_pwd
+    ports:
+      - "3305:3306"
+    volumes:
+      - "/work/mysql/001:/var/lib/mysql"
+    networks:
+      - mysql
+  mysql_slave1:
+    image: docker.goe.dev.com/goe_base/mysql-slave:v5.7
+    depends_on:
+      - mysql_master
+    ports:
+      - "3315:3306"
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_36
+    volumes:
+      - "/work/mysql/001:/var/lib/mysql"
+    environment:
+      - "constraint:node.role==worker"
+      - MYSQL_ROOT_PASSWORD=master_root
+      - MYSQL_REPLICATION_USER=sync
+      - MYSQL_PASSWORD=mysql_pwd
+      - MYSQL_MASTER_SERVICE_HOST=mysql_master1
+    networks:
+      - mysql
+  #主从2 
+  mysql_master2:
+    image: docker.goe.dev.com/goe_base/mysql-master:v5.7
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_36
+    environment:
+      - MYSQL_ROOT_PASSWORD=master_root
+      - MYSQL_REPLICATION_USER=sync
+      - MYSQL_PASSWORD=mysql_pwd
+    ports:
+      - "3306:3306"
+    volumes:
+      - "/work/mysql/002:/var/lib/mysql"
+    networks:
+      - mysql
+  mysql_slave2:
+    image: docker.goe.dev.com/goe_base/mysql-slave:v5.7
+    depends_on:
+      - mysql_master
+    ports:
+      - "3316:3306"
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_35
+    volumes:
+      - "/work/mysql/002:/var/lib/mysql"
+    environment:
+      - "constraint:node.role==worker"
+      - MYSQL_ROOT_PASSWORD=master_root
+      - MYSQL_REPLICATION_USER=sync
+      - MYSQL_PASSWORD=mysql_pwd
+      - MYSQL_MASTER_SERVICE_HOST=mysql_master2
+    networks:
+      - mysql
+  #主从3
+  mysql_master3:
+    image: docker.goe.dev.com/goe_base/mysql-master:v5.7
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_37
+    environment:
+      - MYSQL_ROOT_PASSWORD=master_root
+      - MYSQL_REPLICATION_USER=sync
+      - MYSQL_PASSWORD=mysql_pwd
+    ports:
+      - "3307:3306"
+    volumes:
+      - "/work/mysql/003:/var/lib/mysql"
+    networks:
+      - mysql
+  mysql_slave3:
+    image: docker.goe.dev.com/goe_base/mysql-slave:v5.7
+    ports:
+      - "3317:3306"
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_38
+    volumes:
+      - "/work/mysql/003:/var/lib/mysql"
+    environment:
+      - "constraint:node.role==worker"
+      - MYSQL_ROOT_PASSWORD=master_root
+      - MYSQL_REPLICATION_USER=sync
+      - MYSQL_PASSWORD=mysql_pwd
+      - MYSQL_MASTER_SERVICE_HOST=mysql_master3
+    networks:
+      - mysql
+      
+#mycat1&2
+  mycat1:
+    image: docker.goe.dev.com/goe_base/mycat_xinetd:v1.1
+    privileged: true
+    volumes:
+      - /opt/mycat1/:/usr/local/mycat/conf
+      - /opt/mycat1_logs/:/usr/local/mycat/logs
+      - /opt/xinetd/mycat_status:/etc/xinetd.d/mycat_status
+      - /opt/xinetd/mycat_status.sh:/usr/local/bin/mycat_status
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_38
+    ports:
+      - "8066:8066"
+      - "9066:9066"
+      - "48700:48700"
+    networks:
+      - mysql
+  mycat2:
+    image: docker.goe.dev.com/goe_base/mycat_xinetd:v1.1
+    command: ["chmod 777 /usr/local/bin/mycat_status"]
+    volumes:
+      - /opt/mycat2/:/usr/local/mycat/conf
+      - /opt/mycat2_logs/:/usr/local/mycat/logs
+      - /opt/xinetd/mycat_status:/etc/xinetd.d/mycat_status
+      - /opt/xinetd/mycat_status.sh:/usr/local/bin/mycat_status
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == node_37
+    ports:
+      - "8067:8066"
+      - "9067:9066"
+      - "48701:48700"
+    networks:
+      - mysql
+  mycat-web:
+    image: docker.goe.dev.com/goe_base/mycat_web:v2.0
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "8082:8082"
+    networks:
+      - mysql
+  zoo1:
+    image: docker.goe.dev.com/goe_base/zookeeper:v3.4.11
+    restart: always
+    hostname: zoo1
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888
+    networks:
+      - mysql
+networks:
+  mysql:
+    external: true

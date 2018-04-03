@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://io.mycat/">
+
+	<schema name="messagedb" checkSQLschema="false" sqlMaxLimit="100">
+		<!--<table name="ht_record" dataNode="dn1,dn2,dn3,dn4,dn5,dn6" rule="auto-sharding-long" />-->
+		<!--mod-->
+		<table name="ht_record" dataNode="dn1,dn2,dn3,dn4,dn5,dn6,dn7,dn8,dn9" rule="auto-sharding-rang-mod-hotel" />
+    </schema>
+	
+	<dataNode name="dn1" dataHost="mysql35" database="hotel1" />
+	<dataNode name="dn2" dataHost="mysql35" database="hotel2" />
+	<dataNode name="dn3" dataHost="mysql35" database="hotel3" />
+	
+	<dataNode name="dn4" dataHost="mysql36" database="hotel4" />
+	<dataNode name="dn5" dataHost="mysql36" database="hotel5" />
+	<dataNode name="dn6" dataHost="mysql36" database="hotel6" />
+	
+	<dataNode name="dn7" dataHost="mysql37" database="hotel7" />
+	<dataNode name="dn8" dataHost="mysql37" database="hotel8" />
+	<dataNode name="dn9" dataHost="mysql37" database="hotel9" />
+		
+	<dataHost name="mysql35" maxCon="1000" minCon="10" balance="1"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="-1" slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="m1" url="10.168.1.35:3305" user="root" password="master_root">
+			<readHost host="s1" url="10.168.1.36:3315" user="root" password="master_root" />
+		</writeHost>
+	</dataHost>
+	
+	<dataHost name="mysql36" maxCon="1000" minCon="10" balance="1"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="-1" slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="m1" url="10.168.1.36:3306" user="root" password="master_root">
+			<readHost host="s1" url="10.168.1.35:3316" user="root" password="master_root" />
+		</writeHost>
+	</dataHost>
+	
+	<dataHost name="mysql37" maxCon="1000" minCon="10" balance="1"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="-1" slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="m1" url="10.168.1.37:3307" user="root" password="master_root">
+			<readHost host="s1" url="10.168.1.38:3317" user="root" password="master_root" />
+		</writeHost>
+	</dataHost>
+
+</mycat:schema>
