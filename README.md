@@ -1,5 +1,5 @@
 ## Base On Docker Swarm
- This will show u about mycat running in docker and also incloud mycat-ese. about mycat detail please look here. [Mycat-doc](https://github.com/MyCATApache/Mycat-doc)
+ This will show u about mycat running in docker and also include mycat-ese. about mycat detail please look here. [Mycat-doc](https://github.com/MyCATApache/Mycat-doc)
   
   Otherwise show u haproxy & keepalive in docker,attention please haproxy&keepalive dosen't work in docker swarm.because it need docker network host model,so we start it signle.
   
